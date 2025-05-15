@@ -26,16 +26,18 @@ async function signin(data) {
     try {
         const user = await userRepository.getUserByEmail(data.email);
 
-        if(!user) {
+        if (!user) {
             throw new AppError(['User not found with the given email'], StatusCodes.NOT_FOUND);
         }
         const passwordMatch = Auth.checkPassword(data.password, user.password);
-        if(!passwordMatch) {
+        if (!passwordMatch) {
             throw new AppError(['Invalid password'], StatusCodes.BAD_REQUEST);
         }
 
+        const jwt = Auth.generateJwtToken({ id: user.id, email: user.email });
+        return jwt;
     } catch (error) {
-        if(error instanceof AppError) throw error;
+        if (error instanceof AppError) throw error;
         throw new AppError(['Something went wrong'], StatusCodes.INTERNAL_SERVER_ERROR);
     }
 }
