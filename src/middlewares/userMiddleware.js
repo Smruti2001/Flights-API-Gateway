@@ -24,7 +24,7 @@ async function checkAuth(req, res, next) {
     try {
         const response = await UserService.isAuthenticated(req.headers['x-access-token']);
         if(response) {
-            req.userId = response.id; // Setting the UserId in the req object so that it can be used in the downstream APIs.
+            req.userId = response; // Setting the UserId in the req object so that it can be used in the downstream APIs.
             next();
         }
     } catch (error) {
@@ -34,7 +34,22 @@ async function checkAuth(req, res, next) {
     }
 }
 
+async function isAdmin(req, res, next) {
+    try {
+        const response = await UserService.isAdmin(req.userId);
+        if(!response) {
+            throw new AppError(['User not authorized for this action'], StatusCodes.UNAUTHORIZED);
+        }
+        next();
+    } catch (error) {
+        ErrorResponse.message = 'Something went wrong';
+        ErrorResponse.error = error
+        return res.status(error.statusCode).json(ErrorResponse);
+    }
+}
+
 module.exports = {
     validateCreateRequest,
-    checkAuth
+    checkAuth,
+    isAdmin
 }
